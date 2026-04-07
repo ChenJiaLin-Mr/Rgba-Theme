@@ -1,9 +1,10 @@
-# Change Log
+# Changelog
 
-All notable changes to the "rgba-theme" extension will be documented in this file.
+## [0.1.0] - 2026-04-07
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
-
-## [Unreleased]
-
-- Initial release
+### Added
+- Webview-based color customizer panel (`Rgba Theme: Customize Colors`)
+- Support for RGBA, RGB, and HEX color input formats
+- Grouped color editing: Editor, UI, Syntax Highlighting (21 tokens total)
+- `Rgba Theme: Reset to Default` command
+- Bilingual UI (Chinese / English)

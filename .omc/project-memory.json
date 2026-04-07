@@ -1,0 +1,93 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1775553133594,
+  "projectRoot": "d:\\桌面\\Rgba-Theme",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "npm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "themes": {
+      "path": "themes",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1775553133535,
+      "keyFiles": [
+        "Rgba Theme-color-theme.json"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "extension.js",
+      "accessCount": 9,
+      "lastAccessed": 1775554672111,
+      "type": "file"
+    },
+    {
+      "path": "package.json",
+      "accessCount": 6,
+      "lastAccessed": 1775555192119,
+      "type": "file"
+    },
+    {
+      "path": "themes\\Rgba Theme-color-theme.json",
+      "accessCount": 2,
+      "lastAccessed": 1775554234926,
+      "type": "file"
+    },
+    {
+      "path": "README.md",
+      "accessCount": 2,
+      "lastAccessed": 1775554743944,
+      "type": "file"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "accessCount": 2,
+      "lastAccessed": 1775554761699,
+      "type": "file"
+    },
+    {
+      "path": "LICENSE",
+      "accessCount": 1,
+      "lastAccessed": 1775554953202,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

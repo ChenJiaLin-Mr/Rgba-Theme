@@ -1,20 +1,47 @@
 {
   "name": "rgba-theme",
   "displayName": "Rgba Theme",
-  "description": "Supports RGBA-defined theme colors",
-  "version": "0.0.1",
-  "engines": {
-    "vscode": "^1.110.0"
+  "description": "A VSCode theme with RGBA color customization support | 支持 RGBA 自定义颜色的 VSCode 主题",
+  "version": "0.1.0",
+  "publisher": "ChenJiaLin-Mr",
+  "author": "ChenJiaLin-Mr",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/rgba-theme"
   },
-  "categories": [
-    "Themes"
-  ],
+  "bugs": {
+    "url": "https://github.com/your-username/rgba-theme/issues"
+  },
+  "homepage": "https://github.com/your-username/rgba-theme#readme",
+  "icon": "icon.png",
+"galleryBanner": {
+    "color": "#263238",
+    "theme": "dark"
+  },
+  "keywords": ["theme", "rgba", "color", "customizable", "dark"],
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": ["Themes", "Other"],
+  "activationEvents": [],
+  "main": "./extension.js",
   "contributes": {
     "themes": [
       {
         "label": "Rgba Theme",
         "uiTheme": "vs-dark",
         "path": "./themes/Rgba Theme-color-theme.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "rgba-theme.customize",
+        "title": "Rgba Theme: Customize Colors"
+      },
+      {
+        "command": "rgba-theme.reset",
+        "title": "Rgba Theme: Reset to Default"
       }
     ]
   }
