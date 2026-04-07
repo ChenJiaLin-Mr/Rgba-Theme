@@ -1,0 +1,21 @@
+{
+  "name": "rgba-theme",
+  "displayName": "Rgba Theme",
+  "description": "Supports RGBA-defined theme colors",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.110.0"
+  },
+  "categories": [
+    "Themes"
+  ],
+  "contributes": {
+    "themes": [
+      {
+        "label": "Rgba Theme",
+        "uiTheme": "vs-dark",
+        "path": "./themes/Rgba Theme-color-theme.json"
+      }
+    ]
+  }
+}
