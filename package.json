@@ -2,7 +2,7 @@
   "name": "rgba-theme",
   "displayName": "Rgba Theme",
   "description": "A VSCode theme with RGBA color customization support | 支持 RGBA 自定义颜色的 VSCode 主题",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "publisher": "ChenJiaLin-Mr",
   "author": "ChenJiaLin-Mr",
   "license": "MIT",
@@ -59,6 +59,21 @@
         "label": "Rgba Theme - GitHub Dark",
         "uiTheme": "vs-dark",
         "path": "./themes/Rgba Theme-GitHub Dark-color-theme.json"
+      },
+      {
+        "label": "Rgba Theme - Xcode Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/Rgba Theme-Xcode Dark-color-theme.json"
+      },
+      {
+        "label": "Rgba Theme - Xcode Light",
+        "uiTheme": "vs",
+        "path": "./themes/Rgba Theme-Xcode Light-color-theme.json"
+      },
+      {
+        "label": "Rgba Theme - Eye Care",
+        "uiTheme": "vs",
+        "path": "./themes/Rgba Theme-Eye Care-color-theme.json"
       }
     ],
     "commands": [

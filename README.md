@@ -9,29 +9,42 @@ A VSCode color theme extension that lets you customize theme colors using RGBA v
 ## Features / 功能
 
 - 🎨 Visual color picker + alpha slider + RGBA/HEX text input for each token
-- 📦 4 built-in themes: One Dark Pro, Dracula, Monokai, GitHub Dark
+- 📦 7 built-in themes: One Dark Pro, Dracula, Monokai, GitHub Dark, Xcode Dark, Xcode Light, Eye Care
 - 🗂️ Grouped color editing: Editor / Tabs / Sidebar / Activity Bar / UI / Input & Button / Syntax
-- 💾 Changes saved directly to the theme file
-- 🔄 Reset to defaults anytime
+- 💾 Real-time preview via `colorCustomizations` — no window reload needed
+- 🔄 Reset to defaults — each theme restores its own original colors independently
+- 🔁 Customizer panel auto-syncs when switching themes
+- 🔤 Font settings: fontFamily, fontSize, lineHeight
+- 📤 Export / Import color config as JSON
+- ⭐ Color favorites — save & reuse colors across sessions
+- 🎯 WCAG contrast ratio badge on foreground colors
 
 ---
 
 - 🎨 每个颜色项提供取色器 + 透明度滑块 + RGBA/HEX 文本输入
-- 📦 内置 4 套主题：One Dark Pro、Dracula、Monokai、GitHub Dark
+- 📦 内置 7 套主题：One Dark Pro、Dracula、Monokai、GitHub Dark、Xcode Dark、Xcode Light、Eye Care（护眼）
 - 🗂️ 分组编辑：编辑器 / 标签页 / 侧边栏 / 活动栏 / 界面 / 输入按钮 / 语法高亮
-- 💾 修改直接保存到主题文件
-- 🔄 随时恢复默认值
+- 💾 实时预览 — 通过 `colorCustomizations` 即时生效，无需重载窗口
+- 🔄 恢复默认值 — 每套主题独立恢复自己的原始颜色
+- 🔁 切换主题时自定义面板自动同步
+- 🔤 字体设置：字体族、字号、行高
+- 📤 导出 / 导入颜色配置 JSON
+- ⭐ 收藏颜色 — 保存常用颜色，跨会话复用
+- 🎯 前景色显示 WCAG 对比度徽章
 
 ---
 
 ## Built-in Themes / 内置主题
 
-| Theme | Preview |
+| Theme | Style |
 |---|---|
-| Rgba Theme (One Dark Pro Night Flat) | Dark blue-gray |
+| Rgba Theme | Dark blue-gray (One Dark Pro) |
 | Rgba Theme - Dracula | Purple & pink |
 | Rgba Theme - Monokai | Classic green & yellow |
 | Rgba Theme - GitHub Dark | GitHub style dark |
+| Rgba Theme - Xcode Dark | Apple Xcode dark |
+| Rgba Theme - Xcode Light | Apple Xcode light |
+| Rgba Theme - Eye Care | Warm yellow, easy on eyes |
 
 ---
 
@@ -65,8 +78,8 @@ Extensions panel → find Rgba Theme → click ⚙️ → **Customize Colors**
    - `rgb(238, 255, 255)`
    - `#263238` / `#263238cc`
 
-4. Click **应用颜色**, then reload: `Ctrl+Shift+P` → `Developer: Reload Window`  
-   点击 **应用颜色**，然后重载窗口
+4. Click **应用颜色** — colors apply instantly via real-time preview, no reload needed  
+   点击 **应用颜色** — 颜色实时生效，无需重载窗口
 
 ---
 

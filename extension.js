@@ -2,45 +2,21 @@ const vscode = require('vscode');
 const fs = require('fs');
 const path = require('path');
 
-const THEME_PATH = path.join(__dirname, 'themes', 'Rgba Theme-color-theme.json');
-const DEFAULT_COLORS = {
-  "editor.background": "#1e2127",
-  "editor.foreground": "#abb2bf",
-  "activityBarBadge.background": "#528bff",
-  "sideBarTitle.foreground": "#abb2bf",
-  "editor.selectionBackground": "#3e4451",
-  "editor.lineHighlightBackground": "#2c313a",
-  "editorCursor.foreground": "#528bff",
-  "editorLineNumber.foreground": "#495162",
-  "editorLineNumber.activeForeground": "#abb2bf",
-  "editorGutter.background": "#1e2127",
-  "editor.findMatchBackground": "#528bff40",
-  "editor.findMatchHighlightBackground": "#528bff20",
-  "editor.wordHighlightBackground": "#3e445180",
-  "statusBar.background": "#21252b",
-  "statusBar.foreground": "#9da5b4",
-  "titleBar.activeBackground": "#21252b",
-  "activityBar.background": "#21252b",
-  "activityBar.foreground": "#d7dae0",
-  "activityBar.border": "#181a1f",
-  "sideBar.background": "#21252b",
-  "sideBar.foreground": "#abb2bf",
-  "sideBar.border": "#181a1f",
-  "tab.activeBackground": "#1e2127",
-  "tab.activeForeground": "#abb2bf",
-  "tab.inactiveBackground": "#21252b",
-  "tab.inactiveForeground": "#5c6370",
-  "tab.border": "#181a1f",
-  "panel.background": "#21252b",
-  "panel.border": "#181a1f",
-  "terminal.background": "#1e2127",
-  "terminal.foreground": "#abb2bf",
-  "input.background": "#1e2127",
-  "input.foreground": "#abb2bf",
-  "input.border": "#181a1f",
-  "button.background": "#528bff",
-  "button.foreground": "#ffffff",
+const THEME_FILES = {
+  'Rgba Theme': 'Rgba Theme-color-theme.json',
+  'Rgba Theme - Dracula': 'Rgba Theme-Dracula-color-theme.json',
+  'Rgba Theme - Monokai': 'Rgba Theme-Monokai-color-theme.json',
+  'Rgba Theme - GitHub Dark': 'Rgba Theme-GitHub Dark-color-theme.json',
+  'Rgba Theme - Xcode Dark': 'Rgba Theme-Xcode Dark-color-theme.json',
+  'Rgba Theme - Xcode Light': 'Rgba Theme-Xcode Light-color-theme.json',
+  'Rgba Theme - Eye Care': 'Rgba Theme-Eye Care-color-theme.json',
 };
+
+function getThemePath() {
+  const active = vscode.workspace.getConfiguration('workbench').get('colorTheme');
+  const file = THEME_FILES[active] || 'Rgba Theme-color-theme.json';
+  return path.join(__dirname, 'themes', file);
+}
 
 const COLOR_GROUPS = {
   "编辑器": {
@@ -133,11 +109,11 @@ function parseRgba(input) {
 }
 
 function getTheme() {
-  return JSON.parse(fs.readFileSync(THEME_PATH, 'utf8'));
+  return JSON.parse(fs.readFileSync(getThemePath(), 'utf8'));
 }
 
 function saveTheme(theme) {
-  fs.writeFileSync(THEME_PATH, JSON.stringify(theme, null, '\t'), 'utf8');
+  fs.writeFileSync(getThemePath(), JSON.stringify(theme, null, '\t'), 'utf8');
 }
 
 function getTokenColor(tokenColors, scope) {
@@ -149,7 +125,7 @@ function getTokenColor(tokenColors, scope) {
 }
 
 function buildColorMap(theme) {
-  const map = Object.assign({}, DEFAULT_COLORS, theme.colors);
+  const map = Object.assign({}, theme.colors);
   for (const [key, scope] of Object.entries(TOKEN_SCOPE_MAP)) {
     map[key] = getTokenColor(theme.tokenColors, scope) || '#ffffff';
   }
@@ -173,7 +149,23 @@ function applyColorMap(theme, colors) {
   }
 }
 
-function getWebviewContent(colorMap) {
+// WCAG contrast ratio
+function getLuminance(hex) {
+  const r = parseInt(hex.slice(1,3),16)/255;
+  const g = parseInt(hex.slice(3,5),16)/255;
+  const b = parseInt(hex.slice(5,7),16)/255;
+  const toLinear = c => c <= 0.03928 ? c/12.92 : Math.pow((c+0.055)/1.055, 2.4);
+  return 0.2126*toLinear(r) + 0.7152*toLinear(g) + 0.0722*toLinear(b);
+}
+
+function getContrastRatio(hex1, hex2) {
+  const l1 = getLuminance(hex1.slice(0,7));
+  const l2 = getLuminance(hex2.slice(0,7));
+  const lighter = Math.max(l1,l2), darker = Math.min(l1,l2);
+  return ((lighter+0.05)/(darker+0.05)).toFixed(2);
+}
+
+function getWebviewContent(colorMap, fontConfig) {
   const allKeys = [];
   const sections = Object.entries(COLOR_GROUPS).map(([groupName, items]) => {
     const rows = Object.entries(items).map(([key, label]) => {
@@ -185,15 +177,28 @@ function getWebviewContent(colorMap) {
       if (aaMatch) alpha = Math.round(parseInt(aaMatch[1], 16) / 255 * 100);
       const rgbaMatch = raw.match(/rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*([\d.]+)/);
       if (rgbaMatch) alpha = Math.round(+rgbaMatch[1] * 100);
+
+      // contrast badge for foreground keys
+      let contrastBadge = '';
+      const fgKeys = ['editor.foreground','editor.selectionBackground','editorCursor.foreground'];
+      if (fgKeys.includes(key) && colorMap['editor.background']) {
+        const ratio = getContrastRatio(hex, colorMap['editor.background'].slice(0,7));
+        const pass = ratio >= 4.5 ? '✓' : '✗';
+        contrastBadge = `<span class="contrast ${ratio>=4.5?'pass':'fail'}" title="对比度 ${ratio}:1">${pass} ${ratio}</span>`;
+      }
+
       return `<tr>
-        <td>${label}</td>
+        <td>${label}${contrastBadge}</td>
         <td><code>${key}</code></td>
         <td>
           <input type="color" id="picker_${key}" value="${hex}">
           <input type="range" id="alpha_${key}" min="0" max="100" value="${alpha}" style="width:70px;vertical-align:middle">
           <span id="alphaval_${key}" style="font-size:11px">${alpha}%</span>
         </td>
-        <td><input type="text" id="input_${key}" value="${raw}" placeholder="rgba(r,g,b,a) 或 #rrggbb"></td>
+        <td>
+          <input type="text" id="input_${key}" value="${raw}" placeholder="rgba(r,g,b,a) 或 #rrggbb">
+          <button class="fav-btn" onclick="saveFav('${key}')" title="收藏此颜色">★</button>
+        </td>
       </tr>`;
     }).join('');
     return `<h3>${groupName}</h3>
@@ -202,6 +207,10 @@ function getWebviewContent(colorMap) {
       <tbody>${rows}</tbody>
     </table>`;
   }).join('');
+
+  const themeOptions = Object.keys(THEME_FILES).map(t =>
+    `<option value="${t}"${t === (vscode.workspace.getConfiguration('workbench').get('colorTheme')) ? ' selected' : ''}>${t}</option>`
+  ).join('');
 
   return `<!DOCTYPE html>
 <html lang="zh">
@@ -212,26 +221,95 @@ function getWebviewContent(colorMap) {
   h3 { margin: 20px 0 6px; border-bottom: 1px solid var(--vscode-panel-border); padding-bottom: 4px; }
   table { border-collapse: collapse; width: 100%; margin-bottom: 8px; }
   th, td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--vscode-panel-border); }
-  input[type=text] { width: 200px; background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); padding: 4px; }
+  input[type=text] { width: 180px; background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); padding: 4px; }
   input[type=color] { width: 40px; height: 26px; border: none; cursor: pointer; background: none; }
-  .btns { margin-top: 16px; }
-  button { margin-right: 8px; padding: 7px 16px; background: var(--vscode-button-background); color: var(--vscode-button-foreground); border: none; cursor: pointer; }
+  input[type=number] { width: 60px; background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); padding: 4px; }
+  select { background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border); padding: 4px 8px; }
+  .btns { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  button { padding: 7px 16px; background: var(--vscode-button-background); color: var(--vscode-button-foreground); border: none; cursor: pointer; }
   button:hover { background: var(--vscode-button-hoverBackground); }
+  .fav-btn { padding: 2px 6px; font-size: 13px; background: transparent; color: var(--vscode-foreground); border: 1px solid var(--vscode-input-border); cursor: pointer; }
   #status { margin-top: 10px; color: var(--vscode-notificationsInfoIcon-foreground); }
+  .contrast { font-size: 10px; margin-left: 4px; padding: 1px 4px; border-radius: 3px; }
+  .contrast.pass { background: #2d6a2d; color: #fff; }
+  .contrast.fail { background: #6a2d2d; color: #fff; }
+  .font-section { margin: 16px 0; padding: 12px; border: 1px solid var(--vscode-panel-border); }
+  .font-section label { margin-right: 8px; }
+  .fav-section { margin: 12px 0; padding: 10px; border: 1px solid var(--vscode-panel-border); }
+  .fav-item { display: inline-flex; align-items: center; gap: 4px; margin: 3px; padding: 3px 8px; border: 1px solid var(--vscode-input-border); cursor: pointer; font-size: 12px; }
+  .fav-swatch { width: 14px; height: 14px; display: inline-block; border: 1px solid #888; }
+  .theme-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
 </style>
 </head>
 <body>
 <h2>Rgba Theme 颜色自定义</h2>
+
+<div class="theme-row">
+  <label>切换主题：</label>
+  <select id="themeSelect" onchange="switchTheme()">${themeOptions}</select>
+</div>
+
+<div class="font-section">
+  <strong>字体设置</strong><br><br>
+  <label>字体：<input type="text" id="fontFamily" value="${fontConfig.fontFamily}" style="width:220px" placeholder="Consolas, 'Courier New'"></label>
+  <label>字号：<input type="number" id="fontSize" value="${fontConfig.fontSize}" min="8" max="32"></label>
+  <label>行高：<input type="number" id="lineHeight" value="${fontConfig.lineHeight}" min="0" max="100" step="1"></label>
+  <button onclick="applyFont()" style="margin-left:8px">应用字体</button>
+</div>
+
+<div class="fav-section">
+  <strong>收藏颜色</strong> <span style="font-size:11px;opacity:0.7">（点击收藏项可复制颜色值）</span>
+  <div id="favList"></div>
+</div>
+
 ${sections}
 <div class="btns">
   <button onclick="applyColors()">应用颜色</button>
   <button onclick="resetColors()">恢复默认</button>
+  <button onclick="exportConfig()">导出配置</button>
+  <label style="padding:0"><button onclick="document.getElementById('importFile').click()">导入配置</button><input type="file" id="importFile" accept=".json" style="display:none" onchange="importConfig(event)"></label>
 </div>
 <div id="status"></div>
 <script>
   const vscode = acquireVsCodeApi();
   const keys = ${JSON.stringify(allKeys)};
+  const THEME_FILES_KEYS = ${JSON.stringify(Object.keys(THEME_FILES))};
 
+  // ── 收藏夹 ──
+  let favs = JSON.parse(localStorage.getItem('rgba-favs') || '[]');
+
+  function renderFavs() {
+    const el = document.getElementById('favList');
+    if (!favs.length) { el.innerHTML = '<span style="opacity:0.5;font-size:12px">暂无收藏</span>'; return; }
+    el.innerHTML = favs.map((f,i) => \`<span class="fav-item" onclick="copyFav('\${f.color}')" title="\${f.key}: \${f.color}">
+      <span class="fav-swatch" style="background:\${f.color.slice(0,7)}"></span>\${f.color}
+      <span onclick="event.stopPropagation();removeFav(\${i})" style="opacity:0.5;margin-left:2px">✕</span>
+    </span>\`).join('');
+  }
+
+  function saveFav(key) {
+    const color = document.getElementById('input_' + key).value.trim();
+    if (!color) return;
+    favs.unshift({ key, color });
+    if (favs.length > 20) favs.pop();
+    localStorage.setItem('rgba-favs', JSON.stringify(favs));
+    renderFavs();
+  }
+
+  function copyFav(color) {
+    navigator.clipboard.writeText(color).catch(()=>{});
+    document.getElementById('status').textContent = '已复制：' + color;
+  }
+
+  function removeFav(i) {
+    favs.splice(i, 1);
+    localStorage.setItem('rgba-favs', JSON.stringify(favs));
+    renderFavs();
+  }
+
+  renderFavs();
+
+  // ── 颜色同步 ──
   function hexToRgb(hex) {
     return [parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)];
   }
@@ -254,7 +332,7 @@ ${sections}
         document.getElementById('alpha_' + key).value = 100;
         document.getElementById('alphaval_' + key).textContent = '100%';
       }
-      const m = v.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\s*\)/);
+      const m = v.match(/rgba?\\(\\s*(\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)(?:\\s*,\\s*([\\d.]+))?\\s*\\)/);
       if (m) {
         const toHex = n => (+n).toString(16).padStart(2,'0');
         document.getElementById('picker_' + key).value = '#' + toHex(m[1]) + toHex(m[2]) + toHex(m[3]);
@@ -265,6 +343,18 @@ ${sections}
     });
   });
 
+  // ── 主题切换 ──
+  function switchTheme() {
+    const t = document.getElementById('themeSelect').value;
+    vscode.postMessage({ command: 'switchTheme', theme: t });
+  }
+
+  // ── 字体 ──
+  function applyFont() {
+    vscode.postMessage({ command: 'font', fontFamily: document.getElementById('fontFamily').value.trim(), fontSize: +document.getElementById('fontSize').value, lineHeight: +document.getElementById('lineHeight').value });
+  }
+
+  // ── 颜色应用/重置 ──
   function applyColors() {
     const colors = {};
     keys.forEach(k => { colors[k] = document.getElementById('input_' + k).value.trim(); });
@@ -273,6 +363,39 @@ ${sections}
 
   function resetColors() { vscode.postMessage({ command: 'reset' }); }
 
+  // ── 导出/导入 ──
+  function exportConfig() {
+    const colors = {};
+    keys.forEach(k => { colors[k] = document.getElementById('input_' + k).value.trim(); });
+    const data = { colors, font: { fontFamily: document.getElementById('fontFamily').value, fontSize: +document.getElementById('fontSize').value, lineHeight: +document.getElementById('lineHeight').value } };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'rgba-theme-config.json'; a.click();
+  }
+
+  function importConfig(e) {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (data.colors) Object.entries(data.colors).forEach(([k,v]) => {
+          const inp = document.getElementById('input_' + k);
+          const pic = document.getElementById('picker_' + k);
+          if (inp) { inp.value = v; if (/^#/.test(v)) pic.value = v.slice(0,7); }
+        });
+        if (data.font) {
+          if (data.font.fontFamily) document.getElementById('fontFamily').value = data.font.fontFamily;
+          if (data.font.fontSize) document.getElementById('fontSize').value = data.font.fontSize;
+          if (data.font.lineHeight) document.getElementById('lineHeight').value = data.font.lineHeight;
+        }
+        document.getElementById('status').textContent = '导入成功，点击"应用颜色"生效。';
+      } catch { document.getElementById('status').textContent = '导入失败：JSON 格式错误。'; }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }
+
+  // ── 消息接收 ──
   window.addEventListener('message', e => {
     if (e.data.command === 'status') document.getElementById('status').textContent = e.data.text;
     if (e.data.command === 'updateValues') {
@@ -281,6 +404,7 @@ ${sections}
         const picker = document.getElementById('picker_' + key);
         if (input) { input.value = val; picker.value = val.slice(0,7); }
       });
+      if (e.data.theme) document.getElementById('themeSelect').value = e.data.theme;
     }
   });
 </script>
@@ -289,38 +413,81 @@ ${sections}
 }
 
 function activate(context) {
+  let currentPanel = null;
+
   context.subscriptions.push(
     vscode.commands.registerCommand('rgba-theme.customize', () => {
+      if (currentPanel) { currentPanel.reveal(); return; }
+
       const panel = vscode.window.createWebviewPanel(
-        'rgbaThemeCustomizer',
-        'Rgba Theme Customizer',
-        vscode.ViewColumn.One,
-        { enableScripts: true }
+        'rgbaThemeCustomizer', 'Rgba Theme Customizer',
+        vscode.ViewColumn.One, { enableScripts: true }
       );
-      const theme = getTheme();
-      panel.webview.html = getWebviewContent(buildColorMap(theme));
+      currentPanel = panel;
+      panel.onDidDispose(() => { currentPanel = null; }, null, context.subscriptions);
+
+      const themePath = getThemePath();
+      const backupPath = themePath.replace('.json', '.default.json');
+      if (!fs.existsSync(backupPath)) fs.copyFileSync(themePath, backupPath);
+
+      const editorCfg = vscode.workspace.getConfiguration('editor');
+      const fontConfig = {
+        fontFamily: editorCfg.get('fontFamily') || 'Consolas',
+        fontSize: editorCfg.get('fontSize') || 14,
+        lineHeight: editorCfg.get('lineHeight') || 0,
+      };
+
+      panel.webview.html = getWebviewContent(buildColorMap(getTheme()), fontConfig);
+
+      const themeWatcher = vscode.workspace.onDidChangeConfiguration(e => {
+        if (e.affectsConfiguration('workbench.colorTheme')) {
+          const tp = getThemePath();
+          const bp = tp.replace('.json', '.default.json');
+          if (!fs.existsSync(bp)) fs.copyFileSync(tp, bp);
+          const currentTheme = vscode.workspace.getConfiguration('workbench').get('colorTheme');
+          panel.webview.postMessage({ command: 'updateValues', colors: buildColorMap(getTheme()), theme: currentTheme });
+          panel.webview.postMessage({ command: 'status', text: '主题已切换，数据已同步。' });
+        }
+      });
+      context.subscriptions.push(themeWatcher);
+
       panel.webview.onDidReceiveMessage(async msg => {
-        const theme = getTheme();
         if (msg.command === 'apply') {
+          const theme = getTheme();
           applyColorMap(theme, msg.colors);
           saveTheme(theme);
-          panel.webview.postMessage({ command: 'status', text: '已应用！正在重新加载窗口...' });
-          setTimeout(() => vscode.commands.executeCommand('workbench.action.reloadWindow'), 500);
+          // 实时预览：写入 colorCustomizations
+          const colorCustom = {};
+          Object.entries(msg.colors).forEach(([k, v]) => {
+            if (!TOKEN_SCOPE_MAP[k] && parseRgba(v)) colorCustom[k] = parseRgba(v);
+          });
+          await vscode.workspace.getConfiguration('workbench').update('colorCustomizations', colorCustom, vscode.ConfigurationTarget.Global);
+          panel.webview.postMessage({ command: 'status', text: '已应用！（实时预览已生效，无需重载）' });
         } else if (msg.command === 'reset') {
-          Object.assign(theme.colors, DEFAULT_COLORS);
-          saveTheme(theme);
-          panel.webview.postMessage({ command: 'updateValues', colors: buildColorMap(theme) });
-          panel.webview.postMessage({ command: 'status', text: '已恢复默认。正在重新加载窗口...' });
-          setTimeout(() => vscode.commands.executeCommand('workbench.action.reloadWindow'), 500);
+          const tp = getThemePath();
+          const bp = tp.replace('.json', '.default.json');
+          if (fs.existsSync(bp)) fs.copyFileSync(bp, tp);
+          await vscode.workspace.getConfiguration('workbench').update('colorCustomizations', {}, vscode.ConfigurationTarget.Global);
+          panel.webview.postMessage({ command: 'updateValues', colors: buildColorMap(getTheme()) });
+          panel.webview.postMessage({ command: 'status', text: '已恢复默认。' });
+        } else if (msg.command === 'font') {
+          const cfg = vscode.workspace.getConfiguration('editor');
+          if (msg.fontFamily) await cfg.update('fontFamily', msg.fontFamily, vscode.ConfigurationTarget.Global);
+          if (msg.fontSize) await cfg.update('fontSize', msg.fontSize, vscode.ConfigurationTarget.Global);
+          await cfg.update('lineHeight', msg.lineHeight, vscode.ConfigurationTarget.Global);
+          panel.webview.postMessage({ command: 'status', text: '字体已应用。' });
+        } else if (msg.command === 'switchTheme') {
+          await vscode.workspace.getConfiguration('workbench').update('colorTheme', msg.theme, vscode.ConfigurationTarget.Global);
         }
       }, undefined, context.subscriptions);
     }),
 
-    vscode.commands.registerCommand('rgba-theme.reset', () => {
-      const theme = getTheme();
-      Object.assign(theme.colors, DEFAULT_COLORS);
-      saveTheme(theme);
-      vscode.window.showInformationMessage('Rgba Theme 已恢复默认，重新加载窗口后生效。');
+    vscode.commands.registerCommand('rgba-theme.reset', async () => {
+      const tp = getThemePath();
+      const bp = tp.replace('.json', '.default.json');
+      if (fs.existsSync(bp)) fs.copyFileSync(bp, tp);
+      await vscode.workspace.getConfiguration('workbench').update('colorCustomizations', {}, vscode.ConfigurationTarget.Global);
+      vscode.window.showInformationMessage('Rgba Theme 已恢复默认。');
     })
   );
 }
