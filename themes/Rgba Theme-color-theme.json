@@ -1,7 +1,7 @@
 {
 	"name": "Rgba Theme",
 	"colors": {
-		"editor.background": "#1e2127",
+		"editor.background": "#1e212791",
 		"editor.foreground": "#abb2bf",
 		"activityBarBadge.background": "#528bff",
 		"sideBarTitle.foreground": "#abb2bf",
@@ -17,7 +17,26 @@
 		"activityBar.foreground": "#d7dae0",
 		"sideBar.background": "#21252b",
 		"tab.activeBackground": "#1e2127",
-		"tab.inactiveBackground": "#21252b"
+		"tab.inactiveBackground": "#21252b",
+		"editorGutter.background": "#1e2127",
+		"editor.findMatchBackground": "#528bff40",
+		"editor.findMatchHighlightBackground": "#528bff20",
+		"editor.wordHighlightBackground": "#3e445180",
+		"activityBar.border": "#181a1f",
+		"sideBar.foreground": "#abb2bf",
+		"sideBar.border": "#181a1f",
+		"tab.activeForeground": "#abb2bf",
+		"tab.inactiveForeground": "#5c6370",
+		"tab.border": "#181a1f",
+		"panel.background": "#21252b",
+		"panel.border": "#181a1f",
+		"terminal.background": "#1e2127",
+		"terminal.foreground": "#abb2bf",
+		"input.background": "#1e2127",
+		"input.foreground": "#abb2bf",
+		"input.border": "#181a1f",
+		"button.background": "#528bff",
+		"button.foreground": "#ffffff"
 	},
 	"tokenColors": [
 		{

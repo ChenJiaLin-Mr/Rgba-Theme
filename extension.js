@@ -13,14 +13,33 @@ const DEFAULT_COLORS = {
   "editorCursor.foreground": "#528bff",
   "editorLineNumber.foreground": "#495162",
   "editorLineNumber.activeForeground": "#abb2bf",
+  "editorGutter.background": "#1e2127",
+  "editor.findMatchBackground": "#528bff40",
+  "editor.findMatchHighlightBackground": "#528bff20",
+  "editor.wordHighlightBackground": "#3e445180",
   "statusBar.background": "#21252b",
   "statusBar.foreground": "#9da5b4",
   "titleBar.activeBackground": "#21252b",
   "activityBar.background": "#21252b",
   "activityBar.foreground": "#d7dae0",
+  "activityBar.border": "#181a1f",
   "sideBar.background": "#21252b",
+  "sideBar.foreground": "#abb2bf",
+  "sideBar.border": "#181a1f",
   "tab.activeBackground": "#1e2127",
+  "tab.activeForeground": "#abb2bf",
   "tab.inactiveBackground": "#21252b",
+  "tab.inactiveForeground": "#5c6370",
+  "tab.border": "#181a1f",
+  "panel.background": "#21252b",
+  "panel.border": "#181a1f",
+  "terminal.background": "#1e2127",
+  "terminal.foreground": "#abb2bf",
+  "input.background": "#1e2127",
+  "input.foreground": "#abb2bf",
+  "input.border": "#181a1f",
+  "button.background": "#528bff",
+  "button.foreground": "#ffffff",
 };
 
 const COLOR_GROUPS = {
@@ -130,7 +149,7 @@ function getTokenColor(tokenColors, scope) {
 }
 
 function buildColorMap(theme) {
-  const map = Object.assign({}, theme.colors);
+  const map = Object.assign({}, DEFAULT_COLORS, theme.colors);
   for (const [key, scope] of Object.entries(TOKEN_SCOPE_MAP)) {
     map[key] = getTokenColor(theme.tokenColors, scope) || '#ffffff';
   }
@@ -285,12 +304,14 @@ function activate(context) {
         if (msg.command === 'apply') {
           applyColorMap(theme, msg.colors);
           saveTheme(theme);
-          panel.webview.postMessage({ command: 'status', text: '已应用！重新加载窗口后生效。' });
+          panel.webview.postMessage({ command: 'status', text: '已应用！正在重新加载窗口...' });
+          setTimeout(() => vscode.commands.executeCommand('workbench.action.reloadWindow'), 500);
         } else if (msg.command === 'reset') {
           Object.assign(theme.colors, DEFAULT_COLORS);
           saveTheme(theme);
           panel.webview.postMessage({ command: 'updateValues', colors: buildColorMap(theme) });
-          panel.webview.postMessage({ command: 'status', text: '已恢复默认。重新加载窗口后生效。' });
+          panel.webview.postMessage({ command: 'status', text: '已恢复默认。正在重新加载窗口...' });
+          setTimeout(() => vscode.commands.executeCommand('workbench.action.reloadWindow'), 500);
         }
       }, undefined, context.subscriptions);
     }),

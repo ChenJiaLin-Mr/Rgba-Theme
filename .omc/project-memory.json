@@ -54,8 +54,8 @@
   "hotPaths": [
     {
       "path": "extension.js",
-      "accessCount": 56,
-      "lastAccessed": 1775558508268,
+      "accessCount": 60,
+      "lastAccessed": 1775560293183,
       "type": "file"
     },
     {
@@ -66,8 +66,8 @@
     },
     {
       "path": "themes\\Rgba Theme-color-theme.json",
-      "accessCount": 8,
-      "lastAccessed": 1775557069221,
+      "accessCount": 9,
+      "lastAccessed": 1775560185038,
       "type": "file"
     },
     {
